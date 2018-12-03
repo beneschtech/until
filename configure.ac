@@ -1,0 +1,9 @@
+AC_INIT([until],[1.0],[bug-until@beneschtech.com])
+AM_INIT_AUTOMAKE([-Wall])
+AC_PROG_CC
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_FILES([
+Makefile
+src/Makefile
+])
+AC_OUTPUT

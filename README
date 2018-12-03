@@ -1,0 +1,1 @@
+Until executes a given command and aborts it after either a timeout or considers it good after another condition.
