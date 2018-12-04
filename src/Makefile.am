@@ -1,2 +1,4 @@
 bin_PROGRAMS = until
-until_SOURCES = main.c
+until_SOURCES = \
+until.h \
+until.c
