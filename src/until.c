@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <poll.h>
 
 #include "../config.h"
 #include "until.h"
@@ -17,6 +18,7 @@ char cmdbuf[4096];
 void usage();
 bool parse_args(int argc, char **argv);
 int exec_with_timeout();
+int exec_match_text();
 char *find_executable_path(char *app);
 
 int main(int argc, char *argv[])
@@ -29,6 +31,9 @@ int main(int argc, char *argv[])
 
    if (global_args.cond == Timeout)
        return exec_with_timeout();
+
+   if (global_args.cond == StringOut)
+       return exec_match_text();
 
    return 0;
 }
@@ -111,7 +116,7 @@ void usage()
 char *find_executable_path(char *app)
 {
     memset(cmdbuf,0,sizeof(cmdbuf));
-    const char *path = strdup(getenv("PATH"));
+    char *path = strdup(getenv("PATH"));
     char *pscan = path;
     char dbuf[1024];
     pscan = strtok(pscan,":");
@@ -129,6 +134,111 @@ char *find_executable_path(char *app)
         pscan = strtok(NULL,":");
     }
     return NULL;
+}
+
+int exec_match_text()
+{
+    int pipefds[2];
+    if (pipe(pipefds) != 0)
+    {
+        perror("pipe()");
+        return 1;
+    }
+    pid_t pid = fork();
+    if (pid == -1)
+    {
+        perror("fork()");
+        return 1;
+    }
+    if (pid == 0) // child
+    {
+        close(pipefds[0]); // close unused read end of pipe
+        if (dup2(pipefds[1],STDOUT_FILENO) == -1)
+        {
+            perror("dup2");
+            exit(1);
+            return 1;
+        }
+        // Now all data coming out of stdout is going to the write end of the pipe we just created
+        char **args = (char **)malloc((global_args.nargs+2)*sizeof(char *));
+        memset(args,0,(global_args.nargs+2)*sizeof(char *));
+        *args = global_args.executable;
+        for (int i =0; i < global_args.nargs;i++)
+            args[i+1] = global_args.args[i];
+        if (execvp(global_args.executable,args)) // Should never return
+        {
+            perror("execvp");
+            exit(1);
+        }
+        return 1; // If we get there theres a problem
+    }
+    // parent process
+    bool timeoutactive = true;
+    close(pipefds[1]); // close unused write end of pipe
+    struct pollfd p;
+    p.fd = pipefds[0];
+    p.events = POLLIN;
+    int prv = 0;
+    time_t exptime = time(NULL);
+    exptime += global_args.timeout;
+    while ((prv = poll(&p,1,1000)) >= 0)
+    {
+        if (prv == 0) // just timed out
+        {
+            if (timeoutactive && time(NULL) >= exptime)
+            {
+                int rv;
+                if (kill(pid,SIGKILL) != 0)
+                    perror("kill");
+                waitpid(pid,&rv,0);
+                printf("until: Operation timed out\n");
+                return 1;
+            }
+        }
+        // Read up all the data coming in
+        char *msg = NULL;
+        char buf[4096];
+        if (timeoutactive)
+        {
+            msg = (char *)malloc(sizeof(buf));
+        }
+        size_t msgSize = 0;
+        ssize_t rsz = 0;
+        do {
+            memset(buf,0,sizeof(buf));
+            if (msgSize)
+            {
+                msg = (char *)realloc(msg,msgSize + sizeof(buf));
+            }
+            rsz = read(pipefds[0],buf,sizeof(buf));
+            if (rsz > 0) // put out to the terminal data as we get it
+                write(STDOUT_FILENO,buf,rsz);
+            if (timeoutactive)
+            {
+                memcpy(&msg[msgSize],buf,rsz);
+                msgSize += rsz;
+            }
+        } while(rsz == sizeof(buf));
+        if (rsz == 0)
+            break;
+        if (timeoutactive && strstr(msg,global_args.condData))
+            timeoutactive = false;
+    }
+    // Probably child process ended get return code
+    siginfo_t s;
+    s.si_pid = 0;
+    int rv;
+    if (waitid(P_PID,pid,&s,WNOHANG|WEXITED) == -1)
+    {
+        perror("waitid");
+        return 1;
+    }
+    if (s.si_pid)
+    {
+        waitpid(pid,&rv,0);
+        return s.si_status;
+    }
+    return 1; // Somethis is screwed up, lets just leave
 }
 
 int exec_with_timeout()

@@ -4263,6 +4263,17 @@ _ACEOF
 
 fi
 
+ac_fn_c_check_type "$LINENO" "ssize_t" "ac_cv_type_ssize_t" "$ac_includes_default"
+if test "x$ac_cv_type_ssize_t" = xyes; then :
+
+else
+
+cat >>confdefs.h <<_ACEOF
+#define ssize_t int
+_ACEOF
+
+fi
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for stdbool.h that conforms to C99" >&5
 $as_echo_n "checking for stdbool.h that conforms to C99... " >&6; }
@@ -4405,6 +4416,28 @@ do :
 if test "x$ac_cv_func_strdup" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_STRDUP 1
+_ACEOF
+
+fi
+done
+
+for ac_func in dup2
+do :
+  ac_fn_c_check_func "$LINENO" "dup2" "ac_cv_func_dup2"
+if test "x$ac_cv_func_dup2" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DUP2 1
+_ACEOF
+
+fi
+done
+
+for ac_func in strstr
+do :
+  ac_fn_c_check_func "$LINENO" "strstr" "ac_cv_func_strstr"
+if test "x$ac_cv_func_strstr" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRSTR 1
 _ACEOF
 
 fi
