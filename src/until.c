@@ -194,6 +194,7 @@ int exec_match_text()
                 printf("until: Operation timed out\n");
                 return 1;
             }
+	    continue;
         }
         // Read up all the data coming in
         char *msg = NULL;
@@ -220,23 +221,25 @@ int exec_match_text()
             }
         } while(rsz == sizeof(buf));
         if (rsz == 0)
-            break;
+	{
+	    // Check if child process ended
+	    siginfo_t s;
+	    s.si_pid = 0;
+	    int rv;
+	    if (waitid(P_PID,pid,&s,WNOHANG|WEXITED|WNOWAIT) == -1)
+	    {
+		perror("waitid");
+		return 1;
+	    }
+	    if (s.si_pid)
+	    {
+		waitpid(pid,&rv,0);
+		return s.si_status;
+	    }
+	}
         if (timeoutactive && strstr(msg,global_args.condData))
             timeoutactive = false;
-    }
-    // Probably child process ended get return code
-    siginfo_t s;
-    s.si_pid = 0;
-    int rv;
-    if (waitid(P_PID,pid,&s,WNOHANG|WEXITED) == -1)
-    {
-        perror("waitid");
-        return 1;
-    }
-    if (s.si_pid)
-    {
-        waitpid(pid,&rv,0);
-        return s.si_status;
+	free(msg);
     }
     return 1; // Somethis is screwed up, lets just leave
 }
