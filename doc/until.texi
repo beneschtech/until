@@ -1,0 +1,81 @@
+\input texinfo   @c -*-texinfo-*-
+@setfilename until.info
+@paragraphindent none
+@iftex
+@parskip = 0.5@normalbaselineskip plus 3pt minus 1pt
+@end iftex
+@set lq ``
+@set rq ''
+@headings off
+@everyheading UNTIL(8) @| @| UNTIL(8)
+@everyfooting  @| @thispage @|
+@node Top
+@chapter UNTIL 8
+@ifnottex
+@menu
+* NAME::
+* SYNOPSIS::
+* DESCRIPTION::
+* OPTIONS::
+* EXAMPLES::
+* CAVEATS::
+* AUTHOR::
+* COPYRIGHT::
+@end menu
+@end ifnottex
+@node NAME
+@section NAME
+@c DEBUG: print_menu("NAME")
+until @minus{} run commands with a timeout
+@node SYNOPSIS
+@section SYNOPSIS
+@b{until}
+@b{timeout}
+[@b{-T} @i{text}]
+@i{command}@r{...}
+@node DESCRIPTION
+@section DESCRIPTION
+@b{until}
+runs a command with a specified maximum timeout, or optionally disables the timeout if a certain string is found in the output.
+The main use for this command is system administrators who write maintenance tasks, and do not want them to hang.
+@node OPTIONS
+@section OPTIONS
+@table @code
+@item @b{timeout}
+Integer specifying the number of seconds to wait for a command to complete, always required
+@item @b{@minus{}T@tie{}@i{text}}
+Text to search for in the output of the command to indicate success, and to disable the timeout.
+@end table
+@node EXAMPLES
+@section EXAMPLES
+@table @code
+@item @b{until@tie{}300@tie{}./myFtpScript.pl}
+Run myFtpScript.pl, die off if not done in 5 minutes
+@item @b{until@tie{}30@tie{}@minus{}T@tie{}"ogin:"@tie{}ssh@tie{}user@@somehost@tie{}/opt/software/acme/nightlyjob.sh}
+Try to ssh to somehost and run nightlyjob.sh,
+if it sees the string "ogin:" (as in login or Login), it disables the timer,
+otherwise kill after 30 seconds
+@end table
+@node CAVEATS
+@section CAVEATS
+@b{until} runs the command executed and if within the timeout returns the status of the command executed.
+If the timeout is exceeded the return value is non zero. If it is necessary to distinguish between the timeout being reached
+or the command that was executed returning an error, @b{until} outputs "until: Operation timed out" to stdout.
+Although the data received is copied verbatim, running an ssh command with @b{until} that times out can leave your terminal in
+an unpredictable state, as if you forecfully exited a program using
+@b{curses}
+@node AUTHOR
+@section AUTHOR
+Chris Benesch (chris@@beneschtech.com)
+@node COPYRIGHT
+@section COPYRIGHT
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+@bye
