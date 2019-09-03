@@ -1,0 +1,51 @@
+.TH UNTIL 8
+.SH NAME
+until \- run commands with a timeout
+.SH SYNOPSIS
+.B until
+\fBtimeout\fR
+[\fB-T\fR \fItext\fR] 
+.IR command ...
+.SH DESCRIPTION
+.B until
+runs a command with a specified maximum timeout, or optionally disables the timeout if a certain string is found in the output.
+The main use for this command is system administrators who write maintenance tasks, and do not want them to hang.
+.SH OPTIONS
+.TP
+.BR timeout
+Integer specifying the number of seconds to wait for a command to complete, always required
+.TP
+.BR \-T\ \fItext\fR
+Text to search for in the output of the command to indicate success, and to disable the timeout.
+.SH EXAMPLES
+.TP
+.BR until\ 300\ ./myFtpScript.pl 
+Run myFtpScript.pl, die off if not done in 5 minutes
+.TP
+.BR until\ 30\ \-T\ "ogin:"\ ssh\ user@somehost\ /opt/software/acme/nightlyjob.sh 
+Try to ssh to somehost and run nightlyjob.sh, 
+if it sees the string "ogin:" (as in login or Login), it disables the timer, 
+otherwise kill after 30 seconds
+.SH CAVEATS
+.PP
+\fBuntil\fR runs the command executed and if within the timeout returns the status of the command executed.
+If the timeout is exceeded the return value is non zero. If it is necessary to distinguish between the timeout being reached
+or the command that was executed returning an error, \fBuntil\fR outputs "until: Operation timed out" to stdout.
+.PP
+Although the data received is copied verbatim, running an ssh command with \fBuntil\fR that times out can leave your terminal in
+an unpredictable state, as if you forecfully exited a program using
+.BR curses
+.
+.SH AUTHOR
+Chris Benesch (chris@beneschtech.com)
+.SH COPYRIGHT
+.PP
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+.PP
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.

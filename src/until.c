@@ -1,8 +1,32 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2019 Chris Benesch (chris@beneschtech.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -11,14 +35,14 @@
 #include "../config.h"
 #include "until.h"
 
-struct args global_args;
-const char *invoked_as;
-char cmdbuf[4096];
+static struct args global_args;
+static const char *invoked_as;
+static char cmdbuf[4096];
 
-void usage();
+void usage(void);
 bool parse_args(int argc, char **argv);
-int exec_with_timeout();
-int exec_match_text();
+int exec_with_timeout(void);
+int exec_match_text(void);
 char *find_executable_path(char *app);
 
 int main(int argc, char *argv[])
@@ -53,8 +77,14 @@ bool parse_args(int argc, char **argv)
         return false;
     }
 
+    /* Check for help invocation */
+    if (strncmp(*argv,"-h",2) == 0 || strncmp(*argv,"--help",6) == 0)
+    {
+        usage();
+        return 0;
+    }
     /* Timeout is always first argument, if its not an integer, or 0, thats invalid */
-    global_args.timeout = atoi(*argv);
+    global_args.timeout = (unsigned)(atoi(*argv));
 
     if (global_args.timeout == 0)
     {
@@ -127,8 +157,8 @@ char *find_executable_path(char *app)
         snprintf(dbuf,sizeof(dbuf),"%s/%s",pscan,app);
         struct stat s;
         if (stat(dbuf,&s) == 0)
-        {
-            strncpy(cmdbuf,dbuf,strlen(dbuf)+1);
+        {            
+            strncpy(cmdbuf,dbuf,sizeof(cmdbuf));
             return cmdbuf;
         }
         pscan = strtok(NULL,":");

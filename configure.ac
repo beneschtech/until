@@ -23,5 +23,6 @@ AC_FUNC_REALLOC
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+doc/Makefile
 ])
 AC_OUTPUT
