@@ -1,0 +1,125 @@
+This is until.info, produced by makeinfo version 6.5 from until.texi.
+
+
+File: until.info,  Node: Top,  Next: NAME,  Up: (dir)
+
+1 UNTIL 8
+*********
+
+* Menu:
+
+* NAME::
+* SYNOPSIS::
+* DESCRIPTION::
+* OPTIONS::
+* EXAMPLES::
+* CAVEATS::
+* AUTHOR::
+* COPYRIGHT::
+
+
+File: until.info,  Node: NAME,  Next: SYNOPSIS,  Prev: Top,  Up: Top
+
+1.1 NAME
+========
+
+until - run commands with a timeout
+
+
+File: until.info,  Node: SYNOPSIS,  Next: DESCRIPTION,  Prev: NAME,  Up: Top
+
+1.2 SYNOPSIS
+============
+
+until timeout [-T text] command...
+
+
+File: until.info,  Node: DESCRIPTION,  Next: OPTIONS,  Prev: SYNOPSIS,  Up: Top
+
+1.3 DESCRIPTION
+===============
+
+until runs a command with a specified maximum timeout, or optionally
+disables the timeout if a certain string is found in the output.  The
+main use for this command is system administrators who write maintenance
+tasks, and do not want them to hang.
+
+
+File: until.info,  Node: OPTIONS,  Next: EXAMPLES,  Prev: DESCRIPTION,  Up: Top
+
+1.4 OPTIONS
+===========
+
+'timeout'
+     Integer specifying the number of seconds to wait for a command to
+     complete, always required
+'-T text'
+     Text to search for in the output of the command to indicate
+     success, and to disable the timeout.
+
+
+File: until.info,  Node: EXAMPLES,  Next: CAVEATS,  Prev: OPTIONS,  Up: Top
+
+1.5 EXAMPLES
+============
+
+'until 300 ./myFtpScript.pl'
+     Run myFtpScript.pl, die off if not done in 5 minutes
+'until 30 -T "ogin:" ssh user@somehost /opt/software/acme/nightlyjob.sh'
+     Try to ssh to somehost and run nightlyjob.sh, if it sees the string
+     "ogin:" (as in login or Login), it disables the timer, otherwise
+     kill after 30 seconds
+
+
+File: until.info,  Node: CAVEATS,  Next: AUTHOR,  Prev: EXAMPLES,  Up: Top
+
+1.6 CAVEATS
+===========
+
+until runs the command executed and if within the timeout returns the
+status of the command executed.  If the timeout is exceeded the return
+value is non zero.  If it is necessary to distinguish between the
+timeout being reached or the command that was executed returning an
+error, until outputs "until: Operation timed out" to stdout.  Although
+the data received is copied verbatim, running an ssh command with until
+that times out can leave your terminal in an unpredictable state, as if
+you forecfully exited a program using curses
+
+
+File: until.info,  Node: AUTHOR,  Next: COPYRIGHT,  Prev: CAVEATS,  Up: Top
+
+1.7 AUTHOR
+==========
+
+Chris Benesch (chris@beneschtech.com)
+
+
+File: until.info,  Node: COPYRIGHT,  Prev: AUTHOR,  Up: Top
+
+1.8 COPYRIGHT
+=============
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+
+Tag Table:
+Node: Top71
+Node: NAME259
+Node: SYNOPSIS387
+Node: DESCRIPTION530
+Node: OPTIONS896
+Node: EXAMPLES1234
+Node: CAVEATS1671
+Node: AUTHOR2310
+Node: COPYRIGHT2451
+
+End Tag Table
